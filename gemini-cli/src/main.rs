@@ -65,6 +65,8 @@ async fn main() -> anyhow::Result<()> {
                 generation_config: None,
                 safety_settings: None,
                 system_instruction: None,
+                tools: None,
+                tool_config: None,
             };
 
             println!("Sending request to Gemini...");
@@ -79,6 +81,12 @@ async fn main() -> anyhow::Result<()> {
                         Part::InlineData { inline_data } => {
                             let output_path = save_blob(inline_data)?;
                             println!("Saved generated image to {}", output_path);
+                        }
+                        Part::FunctionCall { function_call } => {
+                            println!("[function_call] {}({})", function_call.name, function_call.args);
+                        }
+                        Part::FunctionResponse { function_response } => {
+                            println!("[function_response] {} -> {}", function_response.name, function_response.response);
                         }
                     }
                 }
@@ -115,6 +123,8 @@ async fn main() -> anyhow::Result<()> {
                     generation_config: None,
                     safety_settings: None,
                     system_instruction: None,
+                    tools: None,
+                    tool_config: None,
                 };
 
                 let stream_result = client.generate_content_stream(model.clone(), request).await?;
